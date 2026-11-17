@@ -119,3 +119,28 @@ automatically unless `strip_images_on_error` is off.
 The marketplace card title and subtitle come from **`locale/<lang>.json` → `meta.title` /
 `meta.description`**, not from `package.json`. Editing `name`, `dsh.name` or `description` will
 not change the card. Locale files are read at process start, so a restart is required.
+
+## Stale-code detection
+
+A DSH plugin is loaded into the host process once, at startup. Editing the source afterwards
+changes nothing until the process restarts, and the symptom is indistinguishable from a broken
+feature — this cost several debugging rounds before it was instrumented.
+
+`GET /health` therefore reports:
+
+```json
+"build": { "file": "…/lib/index.js", "mtime": 1794916992786, "loadedAt": 1794917002963, "stale": false }
+```
+
+`loadedAt` is captured when the module is evaluated; `mtime` is read from disk on every health
+call (deliberately uncached). `stale: true` means the file changed **after** this process
+loaded it, so the running code is older than what is on disk. The settings page renders that as
+a red banner, and shows the load time next to the current version so "which build am I on" is
+answerable from the UI.
+
+Verify it by touching the file while an instance runs:
+
+```bash
+touch lib/index.js && curl -s -b jar.txt http://127.0.0.1:<port>/api/claude-code-parity/health
+# → "stale": true
+```

@@ -49,6 +49,14 @@ check('auth cookie minted', Boolean(COOKIE), COOKIE ? COOKIE.slice(0, 22) + '…
 
 const API = '/api/claude-code-parity'
 
+// --- health must be able to tell the user whether the process runs stale code
+{
+  const h = (await req('GET', `${API}/health`)).json || {}
+  const b = h.build || {}
+  check('health reports build provenance', Boolean(b.loadedAt && b.file),
+    `loadedAt=${b.loadedAt ? new Date(b.loadedAt).toISOString() : '-'} stale=${b.stale}`)
+}
+
 // --- snapshot
 const before = (await req('GET', `${API}/settings`)).json
 check('settings GET returns groups+items', before.groups.length === 6 && before.items.length >= 30,

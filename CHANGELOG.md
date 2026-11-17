@@ -3,6 +3,30 @@
 All notable changes to **DSH-Claude Code CLI** are recorded here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- **"Start update" appeared to do nothing.** Two causes, both addressed:
+  1. The upgrade block gave no durable feedback. A failed start only produced a transient
+     toast, and a run that changed nothing was easy to miss. Failures now stay on screen next
+     to the button, and while npm runs the button shows a live elapsed counter
+     (`Updating… 12s`).
+  2. When the installed version already *was* the latest, the button still said "Start
+     update", so a successful no-op read as a failure. It now reads **Reinstall latest** and
+     carries the hint that reinstalling will not change the version number.
+
+### Added
+
+- `GET /health` now returns `build: { file, mtime, loadedAt, stale }`. When `mtime` is newer
+  than `loadedAt`, the process is executing code from before the last edit — the single most
+  confusing failure mode this plugin has. The settings page renders that as a red banner
+  telling you to fully quit and reopen DSH, and shows the load time next to the version.
+- `tools/verify/_verify_upgrade.mjs` drives the real upgrade route end to end (immediate
+  response, npm log, before/after, `changed`).
+- `tools/verify/_verify_upgrade_ui.mjs` clicks through the panel in a real browser: check →
+  relabel → start → elapsed counter → verdict → rendered npm log.
+
 ## [2.5.1] — 2026-11-17
 
 First release of the DSH-native port, plus the fixes found while verifying it end to end.
