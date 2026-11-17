@@ -7,6 +7,41 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **A task with a large attachment could hang the composer forever.** The panel sat on
+  "working…" with no error and no job created. Three faults stacked up:
+  1. Every non-image attachment was base64'd into a JSON body. A 40 MB video became a 55 MB
+     request, tripped the 32 MB `readBody` cap mid-stream, and the 413 sent while the client
+     was still uploading left the keep-alive socket unusable — so the `/chat` request that
+     actually starts the task never delivered its body. Attachments now use
+     `POST /upload/raw`, streamed straight to disk with no base64 and a 512 MB ceiling.
+  2. No request had a deadline, so a stuck fetch left the busy flag set forever (it is only
+     cleared in a `finally`). Every call now has a timeout, the poll loop gives up after 15
+     minutes of silence, and upload failures are reported instead of swallowed.
+  3. Even on success the composer stayed locked, because title generation and the history
+     write were awaited before the turn returned. Both now run in the background.
+- **A reasoning model that spent its whole budget thinking produced a blank turn.** The
+  response had an empty content array, which renders as nothing at all. Both paths now explain
+  why the turn was empty and point at the max-tokens setting.
+
+### Added
+
+- `POST /upload/raw` — streams an attachment body to disk (`?name=&session_key=&kind=`),
+  returning `{ path, name, uid, kind, size }`. This is what the UI uses for anything that can
+  be large.
+- `GET /health` now returns `build: { file, mtime, loadedAt, stale }`. When `mtime` is newer
+  than `loadedAt`, the process is executing code from before the last edit — the single most
+  confusing failure mode this plugin has. The settings page renders that as a red banner
+  telling you to fully quit and reopen DSH, and shows the load time next to the version.
+
+### Changed
+
+- Oversized JSON bodies answer **413** with `connection: close` instead of a bare 500, so the
+  socket is never reused with unread bytes on it.
+- Media the CLI cannot read (mp4/mov/mp3/zip…) is still named in the prompt but is no longer
+  advertised as "read this with Read", which only made the model try and fail.
+
+### Fixed
+
 - **"Start update" appeared to do nothing.** Two causes, both addressed:
   1. The upgrade block gave no durable feedback. A failed start only produced a transient
      toast, and a run that changed nothing was easy to miss. Failures now stay on screen next
