@@ -159,16 +159,20 @@ check('send button accepts the task', Boolean(sent?.ok), JSON.stringify(sent || 
 // The whole point: the panel must leave the busy state on its own.
 // `.ccp-loading` is the real busy indicator — the send button is also disabled
 // when the composer is simply empty, so it cannot be used as the signal.
+// The answer must be in a rendered answer body, not merely somewhere in the
+// panel text: a thinking row that swallowed the reply used to satisfy a plain
+// text search while the user saw no answer at all.
 const settled = await waitFor(async () => evaluate(`(() => {
-  const body = document.querySelector('.ccp-root')?.innerText || ''
-  const busy = Boolean(document.querySelector('.ccp-root .ccp-loading'))
-  const answered = /好的/.test(body.replace('只回答两个字：好的', ''))
-  const errored = /失败|错误|error|超时|未返回内容/i.test(body)
-  return (!busy && (answered || errored)) ? { busy, answered, errored, sample: body.slice(-220) } : null
+  const root = document.querySelector('.ccp-root')
+  const busy = Boolean(root.querySelector('.ccp-loading'))
+  const bodies = Array.from(root.querySelectorAll('.ccp-msg:not(.user) .ccp-readable')).map((x) => (x.innerText || '').trim())
+  const answered = bodies.some((b) => /好的/.test(b))
+  const errored = /失败|错误|error|超时|未返回内容/i.test(root.innerText || '')
+  return (!busy && (answered || errored)) ? { busy, answered, errored, bodies: bodies.map((b) => b.slice(0, 40)) } : null
 })()`), 180000, 1200)
 
-check('panel returns to idle with an answer or a visible error', Boolean(settled),
-  settled ? `answered=${settled.answered} errored=${settled.errored}` : 'still busy after 180s')
+check('panel returns to idle with an answer in the answer body (or a visible error)', Boolean(settled),
+  settled ? `answered=${settled.answered} errored=${settled.errored} bodies=${JSON.stringify(settled.bodies)}` : 'still busy after 180s')
 
 const finalState = await evaluate(`(() => ({
   busy: Boolean(document.querySelector('.ccp-root .ccp-loading')),

@@ -56,21 +56,24 @@ const lan = Object.values(ifaces).flat().find((a) => a && a.family === 'IPv4' &&
 if (!lan) { console.log('FAIL no LAN IPv4 address'); process.exit(1) }
 const HOST = lan.address
 
-// Occupy the default port the way another DSH instance would.
+// Occupy the default port the way another DSH instance would. A base port can be
+// passed in because a real mobile instance may already own 9240 — testing the
+// fallback must not require killing the user's live instance.
+const WANT = Number(process.argv[3] || 9240)
 const squatter = net.createServer()
 const occupied = await new Promise((resolve) => {
   squatter.once('error', () => resolve(false))
-  squatter.listen(9240, HOST, () => resolve(true))
+  squatter.listen(WANT, HOST, () => resolve(true))
 })
-check('default port 9240 could be occupied for the test', occupied, HOST + ':9240')
-if (!occupied) { console.log('SKIP cannot occupy 9240'); process.exit(1) }
+check(`port ${WANT} could be occupied for the test`, occupied, HOST + ':' + WANT)
+if (!occupied) { console.log('SKIP cannot occupy ' + WANT); process.exit(1) }
 
-const started = await req('POST', `${API}/mobile/start`, { host: HOST })
-check('mobile/start succeeds even though 9240 is taken', started.status === 200 && started.json?.ok === true,
+const started = await req('POST', `${API}/mobile/start`, { host: HOST, port: WANT })
+check(`mobile/start succeeds even though ${WANT} is taken`, started.status === 200 && started.json?.ok === true,
   `HTTP ${started.status} ${started.json?.error || started.error || ''}`)
 
 const st = started.json?.state || {}
-check('it moved to a different port', Number(st.port) > 0 && Number(st.port) !== 9240, 'port=' + st.port)
+check('it moved to a different port', Number(st.port) > 0 && Number(st.port) !== WANT, 'port=' + st.port)
 check('it explains the substitution', /占用|taken|in use/i.test(String(started.json?.note || '')), String(started.json?.note || ''))
 check('the reported URL points at the new port', String(st.url || '').includes(':' + st.port + '/'), String(st.url || '').slice(0, 70))
 

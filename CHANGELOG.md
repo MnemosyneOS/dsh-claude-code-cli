@@ -7,6 +7,18 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **A reasoning model showed only its thinking, never its answer.** The turn rendered as a
+  single muted "思考" line and the reply was nowhere on screen, even though the job record
+  held the full text. `applyEvent` merged incoming events on `role === 'assistant' &&
+  streaming` alone, and a reasoning model emits `thinking` first — so the following `blocks`
+  were appended *into* the thinking row. The message kept `kind: 'thinking'`, and
+  `renderMessage` dispatches on `kind` first, so no branch could ever paint that text.
+  Events now merge only into a row of their own kind (a plain text row is promoted to
+  `blocks` instead of stacking a second answer box), abandoned rows are marked finished, and
+  a turn whose body is missing falls back to `result.text` — which also repairs the records
+  already stored in this shape. Covered by `_verify_reply_unit` (15 checks, 6 of which fail
+  on the previous build), `_verify_reply_ui` (13 checks, real local model) and
+  `_verify_reply_history` (15 checks, real polluted records).
 - **A task with a large attachment could hang the composer forever.** The panel sat on
   "working…" with no error and no job created. Three faults stacked up:
   1. Every non-image attachment was base64'd into a JSON body. A 40 MB video became a 55 MB
@@ -25,6 +37,21 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- **Split view.** Three layout states — single pane, side by side, stacked —
+  picked from a segmented control in the top bar and remembered across reloads.
+  The second pane is a **Start** surface whose cards are all wired to real
+  endpoints:
+  - *Workspace files* browses the session workspace (`GET /files`), drills into
+    folders, and inserts `@<abs path>` into the prompt.
+  - *New terminal* runs a command (`POST /exec`, host shell, 30 s default
+    timeout) and shows stdout/stderr with exit code and duration.
+  - *Browser* opens a URL in a new tab.
+  - *Session diagnostics* (`GET /diagnostics`) reports pid, uptime, bridge port,
+    CLI version/path, active model, permission mode, and session/job/upload
+    counts, plus whether the loaded code is stale.
+  - *More tools*: settings, refresh, copy the workspace path.
+  Ctrl+P / Ctrl+` / Ctrl+T open the matching card while focus is inside the
+  panel.
 - `POST /upload/raw` — streams an attachment body to disk (`?name=&session_key=&kind=`),
   returning `{ path, name, uid, kind, size }`. This is what the UI uses for anything that can
   be large.
