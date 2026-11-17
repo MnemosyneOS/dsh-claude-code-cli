@@ -243,10 +243,13 @@ and the plugin migrates older configs to it once (`settings_version`).
 | Panel is blank, backend works | `__ModuleLoader__.load({id})` does not match `package.json` `name` | they must be byte-identical |
 | Second turn always fails | assistant messages missing `source` | fixed in 2.5.1; check you are not running an old build |
 | `does not support reasoning effort "medium"` | a level was forwarded to a model that rejects it | set reasoning effort to `auto` |
-| `message content cannot be empty` | tool-result-only user message | fixed in 2.5.1 (a placeholder text block is added) |
+| `message content cannot be empty` | tool-result-only user message | fixed in 2.5.1; 2.5.2 no longer needs a placeholder — such a message is simply not emitted |
 | `profile "desktop" is managed exclusively by the Electron application` | CLI cannot start the desktop profile | use the `web` profile |
 | Update button reports no change | CLI is installed project-locally, `-g` cannot reach it | fixed; the plugin detects the layout |
 | Plugin card shows an old name | the card reads `locale/<lang>.json` `meta.title`, not `package.json` | update the locale files and restart |
+| Every tool returns `No result provided` | tool results were packed as parts of a user message; DSH only reads text/image there | fixed in 2.5.2 — results travel as their own `role: 'tool'` message |
+| The transcript jumps to the bottom while reading | auto-follow keyed on "new output" instead of "already at the bottom" | fixed in 2.5.2; the round arrow at the top right jumps back down |
+| A reasoning model shows thinking but no answer | `blocks` merged into the streaming thinking row | fixed in 2.5.2; see the knowledge base entry ㉚ |
 
 More, with root causes and evidence, in [docs/architecture.md](docs/architecture.md) and the
 knowledge base shipped alongside this plugin.
@@ -278,13 +281,21 @@ instance and a real headless Chrome:
 # start an isolated instance (note the token it prints)
 dsh --profile <verify-profile> --port 39120 --host 127.0.0.1 --no-open
 
-node tools/verify/_verify_all.mjs  "<token>"   # 20 backend assertions
-node tools/verify/_verify_ui.mjs   "<token>"   # 9 real-browser assertions
-node tools/verify/_verify_chat.mjs "<token>"   # two real turns through CLI + bridge
+node tools/verify/_verify_all.mjs      "<token>"   # 21 backend assertions
+node tools/verify/_verify_ui.mjs       "<token>"   # 9 real-browser assertions
+node tools/verify/_verify_chat.mjs     "<token>"   # two real turns through CLI + bridge
+node tools/verify/_verify_reply_unit.mjs            # 15 event-merge checks, no instance needed
+node tools/verify/_verify_reply_ui.mjs "<token>"   # 13 — the answer must be painted
+node tools/verify/_verify_reply_history.mjs "<token>" # 15 — damaged records recover
+node tools/verify/_verify_scroll_ui.mjs "<token>"  # 22 — scroll position holds, arrow works
+node tools/verify/_verify_tool.mjs     "<token>"   # 12 — the model reads real tool output
+node tools/verify/_verify_split_ui.mjs "<token>"   # 12 — split view + Start pane
+node tools/verify/_verify_send_ui.mjs  "<token>"   # 6  — 40 MB attachment round trip
+node tools/verify/_verify_mobile_port.mjs "<token>" 9260  # 9 — port fallback
 ```
 
-Baseline at 2.5.1: **20/20**, **9/9**, and a two-turn conversation (`好的` → `42`) on one
-session id. The chat harness pins a working text model and restores your previous selection
+Baseline at 2.5.2: **21/21**, **9/9**, **15/15**, **13/13**, **15/15**, **22/22**, **12/12**,
+**12/12**, **6/6**, **9/9**, plus a two-turn conversation (`好的` → `42`) on one session id. The chat harness pins a working text model and restores your previous selection
 afterwards, so it never leaves your model picker moved.
 
 ## License and trademarks

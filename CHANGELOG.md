@@ -3,10 +3,28 @@
 All notable changes to **DSH-Claude Code CLI** are recorded here.
 This project follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [2.5.2] - 2026-11-17
 
 ### Fixed
 
+- **Every tool call came back to the model as "No result provided".** The CLI ran the tools and the
+  job log held their output, but the model insisted all five calls — including a bare `echo` — had
+  returned nothing. The bridge packed tool results as `{type:'tool-result'}` parts inside a user
+  message, while DSH's harness vocabulary only reads text/image out of a user message: the results
+  were silently dropped, and DSH's `transformMessages()` answered each unanswered tool call with a
+  synthetic `No result provided` + `isError`. Results now travel as their own `role: 'tool'`
+  messages (`toolCallId` + `content` + `isError`), an empty result says `(no output)` instead of
+  nothing, and a user message that carried only tool results no longer leaves a blank turn behind.
+  Covered by `_verify_tool` (12 checks: three parallel commands with unpredictable `$RANDOM` output
+  plus a follow-up turn that replays the whole tool history).
+- **The transcript was yanked back to the bottom on every update.** Auto-follow keyed on "new
+  message arrived" instead of "the reader is already at the bottom", so scrolling up during a long
+  answer was impossible. Following now depends on scroll position, deliberate jumps (send, session
+  switch) still force it, and a round jump-to-bottom button appears at the top right of the
+  transcript whenever the view is not at the bottom. Covered by `_verify_scroll_ui` (22 checks).
+- **The jump button rendered as a rounded square.** The host sets `corner-shape: superellipse(1.5)`
+  globally, which turns `border-radius: 50%` into a squircle; the button now sets
+  `corner-shape: round` explicitly.
 - **A reasoning model showed only its thinking, never its answer.** The turn rendered as a
   single muted "思考" line and the reply was nowhere on screen, even though the job record
   held the full text. `applyEvent` merged incoming events on `role === 'assistant' &&

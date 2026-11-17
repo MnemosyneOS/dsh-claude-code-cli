@@ -226,10 +226,13 @@ CLI 以 `--permission-prompt-tool mcp__ccp-approval__approve` 启动，并带一
 | 面板空白但接口正常 | `__ModuleLoader__.load({id})` 与 `package.json` 的 `name` 不一致 | 两者必须逐字相同 |
 | 第二轮必失败 | assistant 消息缺 `source` 字段 | 2.5.1 已修；确认不是旧构建 |
 | `does not support reasoning effort "medium"` | 把档位下发给了不支持的模型 | 推理强度改回 `auto` |
-| `message content cannot be empty` | 仅含工具结果的 user 消息 | 2.5.1 已修（补占位文本块） |
+| `message content cannot be empty` | 仅含工具结果的 user 消息 | 2.5.1 已修；2.5.2 起不再需要占位文本（这类消息直接不发送） |
 | `profile "desktop" is managed exclusively by the Electron application` | CLI 不能起桌面 profile | 用 `web` profile |
 | 点更新提示版本未变化 | CLI 是项目本地安装，`-g` 改不到 | 已修；插件会先判断安装形态 |
 | 插件卡片显示旧名字 | 卡片读的是 `locale/<lang>.json` 的 `meta.title` | 改 locale 后重启 |
+| 所有工具都返回 `No result provided` | 工具结果被塞进 user 消息的 parts，DSH 只读 text/image | 2.5.2 已修 —— 结果走独立 `role:'tool'` 消息 |
+| 翻看历史时被拽回底部 | 自动跟随按「有新输出」而非「已在底部」判断 | 2.5.2 已修；右上角圆形箭头可一键回底 |
+| 推理模型只有思考没有回复 | `blocks` 被合并进流式 thinking 行 | 2.5.2 已修，见知识库 ㉚ |
 
 更多带根因与证据的记录见 [docs/architecture.md](docs/architecture.md)。
 
@@ -259,12 +262,21 @@ CLI 以 `--permission-prompt-tool mcp__ccp-approval__approve` 启动，并带一
 # 起隔离实例（记下它打印的 token）
 dsh --profile <verify-profile> --port 39120 --host 127.0.0.1 --no-open
 
-node tools/verify/_verify_all.mjs  "<token>"   # 20 项后端断言
-node tools/verify/_verify_ui.mjs   "<token>"   # 9 项真实浏览器断言
-node tools/verify/_verify_chat.mjs "<token>"   # 经 CLI + 协议桥的两轮真实对话
+node tools/verify/_verify_all.mjs      "<token>"   # 21 项后端断言
+node tools/verify/_verify_ui.mjs       "<token>"   # 9 项真实浏览器断言
+node tools/verify/_verify_chat.mjs     "<token>"   # 经 CLI + 协议桥的两轮真实对话
+node tools/verify/_verify_reply_unit.mjs            # 15 项事件合并断言（无需实例）
+node tools/verify/_verify_reply_ui.mjs "<token>"   # 13 项：正文必须真的画出来
+node tools/verify/_verify_reply_history.mjs "<token>"  # 15 项：坏记录可恢复
+node tools/verify/_verify_scroll_ui.mjs "<token>"  # 22 项：滚动位置不被拽走 + 箭头
+node tools/verify/_verify_tool.mjs     "<token>"   # 12 项：模型必须读到真实工具输出
+node tools/verify/_verify_split_ui.mjs "<token>"   # 12 项：分栏 + Start 面板
+node tools/verify/_verify_send_ui.mjs  "<token>"   # 6 项：40MB 附件往返
+node tools/verify/_verify_mobile_port.mjs "<token>" 9260  # 9 项：端口让位
 ```
 
-2.5.1 基线：**20/20**、**9/9**，以及同一会话内的两轮对话（`好的` → `42`）。
+2.5.2 基线：**21/21**、**9/9**、**15/15**、**13/13**、**15/15**、**22/22**、**12/12**、
+**12/12**、**6/6**、**9/9**，以及同一会话内的两轮对话（`好的` → `42`）。
 对话脚本会临时固定一个可用文本模型，验完还原你原来的选择，不会把你的模型选择器改走。
 
 ## 授权与商标
