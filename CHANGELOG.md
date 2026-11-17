@@ -1,0 +1,61 @@
+# Changelog
+
+All notable changes to **DSH-Claude Code CLI** are recorded here.
+This project follows [Semantic Versioning](https://semver.org/).
+
+## [2.5.1] — 2026-11-17
+
+First release of the DSH-native port, plus the fixes found while verifying it end to end.
+Version numbers track the Hermes `claude-code-parity` release this port started from.
+
+### Added
+
+- Native DSH plugin (`@local/dsh-claude-code-cli`) — host routes via `ctx.webServer.register()`,
+  panel via `ctx.slots`, protocol bridge via `ctx.llm.stream()`. No Python, no FastAPI.
+- **Real CLI upgrade.** `POST /upgrade/check` reads the installed version from the CLI's own
+  `package.json` and compares it against `registry.npmjs.org`. `POST /upgrade` inspects the
+  install layout and runs npm in the right root, streaming the log to `upgrade-state.json`.
+- **Phone access over the same Wi-Fi.** `/mobile` enumerates real LAN interfaces,
+  `/mobile/start` boots a LAN-bound DSH instance plus a short-address 302 redirect.
+- 35 settings wired into the run path: theme palettes, thinking/tool visibility, compact
+  transcript, stream polling speed, auto-title, keep-history, history limit, export format,
+  paste-to-document threshold, tool policy, per-family allow flags, read-only auto-approve,
+  approval timeout, sampling parameters, vision mode and image-strip fallback.
+- Claude Code marketplace wrapper under `integrations/claude-code/`.
+
+### Fixed
+
+- **The whole panel rendered blank** because `__ModuleLoader__.load({id})` did not match
+  `package.json` `name`. Backend stayed green the entire time; only a real browser exposed it.
+- **Every second turn failed** — assistant messages were built without `source`, and DSH reads
+  `message.source.replayState` unconditionally.
+- **`reasoning_effort` was forwarded blindly**, killing any model that rejects the parameter
+  (`does not support reasoning effort "medium"`). Default is now `auto` (send nothing) with a
+  one-shot migration keyed on `settings_version`.
+- **Tool-result-only user messages were rejected** by OpenAI-shaped providers
+  (`message content cannot be empty`); a placeholder text block is now added.
+- **`npm update -g` could not reach a project-local CLI**, which is why "update" appeared to
+  do nothing.
+- **The plugin card kept the old name** — it reads `locale/<lang>.json` `meta.title`, not
+  `package.json`.
+- Settings labels rendered as raw keys (`show_thinking`) because the schema stores plain
+  strings while the renderer expected `{zh,en}` objects; enum values are now localised too.
+- Deleting a session cleared the list but not the reading pane; CLI transcripts needed a
+  `cli-meta` overlay to be editable at all.
+- Export returned 404 for CLI-only sessions; it now falls back to the raw transcript.
+
+### Verified
+
+- `tools/verify/_verify_all.mjs` — **20/20** (settings round-trip for all 35 items, coercion of
+  invalid values, reset, no-drift restore, registry lookup, install root, LAN interfaces,
+  mobile start/stop, short-address 302, cookie mint 303, LAN shell 200, plugin API 200,
+  export formats, history limit).
+- `tools/verify/_verify_ui.mjs` — **9/9** in headless Chrome over CDP (panel mounts, 7 settings
+  tabs, real `2.1.326` version string, 37 human-readable labels, LAN address rendered).
+- `tools/verify/_verify_chat.mjs` — two turns through the real CLI and bridge on one session id.
+- Zero browser console errors.
+- CLI upgraded 2.1.325 → 2.1.326 in place (`changed=true`).
+
+## [2.5.1-hermes]
+
+The Hermes Desktop release this port derives its feature set and version number from.

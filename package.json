@@ -1,0 +1,48 @@
+{
+  "name": "@local/dsh-claude-code-cli",
+  "version": "2.5.1",
+  "description": "DSH-Claude Code CLI — Claude Code Desktop for DeepSeek Harness — a graphical, non-terminal Claude Code workspace with sessions, tool approvals, full CLI settings surface, attachments, i18n and mobile access. Port of Hermes claude-code-parity 2.5.1.",
+  "private": true,
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/client.js",
+    "lib/bridge.js",
+    "lib/common.js",
+    "lib/approval-mcp.js",
+    "patches/bundle.yaml",
+    "locale/*.json",
+    "icon.svg",
+    "assets/*",
+    "docs/*.md",
+    "integrations/**",
+    "README.md",
+    "README.zh-CN.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "dsh": {
+    "name": "DSH-Claude Code CLI",
+    "category": "tools",
+    "bundle": {
+      "patch": "./patches/bundle.yaml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-layout"
+      ]
+    }
+  },
+  "license": "MIT"
+}

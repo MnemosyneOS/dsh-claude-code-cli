@@ -1,0 +1,24 @@
+# DSH-Claude Code CLI — loader patch
+#
+# 插入一个 Host 插件，同时注册：
+#   - 侧边栏面板（sidebar.panellist，id = claude-code-parity）
+#   - 中央工作区（main 槽，key = claude-code-parity）
+#   - /api/claude-code-parity/* 系列端点（会话、聊天、审批、设置、历史、模型、升级、手机访问）
+#   - 内置 Anthropic Messages ⇄ DSH LLM 协议桥（47823-47828 择空，供 claude CLI 子进程调用）
+#
+# 可在用户 cordis.patch.yml 中以同 id 覆盖 config（整块替换）。
+# 这里只列出代码真正读取的键；其余可调项都在插件「设置」页里。
+
+- insert:
+    - id: claude-code-parity
+      name: '@local/dsh-claude-code-cli'
+      config:
+        # claude CLI 可执行文件。留空则按顺序解析：设置里的 cli_path → 常见安装位置。
+        cliPath: ''
+
+        # Claude CLI 的历史会话目录。留空 = ~/.claude/projects。
+        claudeProjectsDir: ''
+
+        # 未选择模型时的兜底提供方 / 模型。留空则取 DSH 目录里的第一项。
+        defaultProvider: ''
+        defaultModel: ''

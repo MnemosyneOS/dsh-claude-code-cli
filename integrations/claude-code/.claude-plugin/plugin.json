@@ -1,0 +1,15 @@
+{
+  "name": "dsh-claude-code-cli",
+  "displayName": "DSH Claude Bridge",
+  "version": "2.5.1",
+  "description": "Teaches Claude Code how to drive the Claude Code Desktop workspace that this repo ships for DeepSeek Harness: the loopback bridge, the model catalogue, the turn/poll event stream, and the approval flow.",
+  "author": {
+    "name": "MnemosyneOS",
+    "url": "https://github.com/MnemosyneOS"
+  },
+  "homepage": "https://github.com/MnemosyneOS/dsh-claude-code-cli",
+  "repository": "https://github.com/MnemosyneOS/dsh-claude-code-cli",
+  "license": "MIT",
+  "keywords": ["dsh", "deepseek-harness", "claude-code", "bridge", "local-models", "desktop"],
+  "skills": ["./skills/"]
+}

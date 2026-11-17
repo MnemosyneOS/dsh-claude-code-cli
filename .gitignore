@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Verification harness output / local artefacts
+tools/verify/out/
+*.log
+*.tmp
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

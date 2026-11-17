@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "DSH-Claude Code CLI",
+    "description": "在 DSH 面板内以图形界面使用 Claude Code CLI：会话、附件、思考链、工具审批、历史、全套设置与手机同网访问。"
+  },
+  "sidebar": { "label": "Claude Code" }
+}

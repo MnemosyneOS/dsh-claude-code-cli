@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "DSH-Claude Code CLI",
+    "description": "Run Claude Code CLI as a graphical workspace inside DSH: sessions, attachments, thinking chain, tool approvals, history, the full settings surface and same-Wi-Fi mobile access."
+  },
+  "sidebar": { "label": "Claude Code" }
+}

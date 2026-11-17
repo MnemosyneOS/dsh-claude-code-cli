@@ -1,0 +1,24 @@
+# Notice
+
+The software in this repository is licensed under the MIT License; see `LICENSE`.
+
+## Trademarks
+
+**Claude** and **Claude Code** are trademarks of Anthropic, PBC.
+
+This project is an independent front end that drives a locally installed Claude Code CLI.
+It is not affiliated with, endorsed by, or sponsored by Anthropic. The names are used only
+to describe what the software talks to.
+
+**DeepSeek Harness** and **DeepSeek** are products of DeepSeek. This is a third-party plugin
+for that host, distributed independently of it.
+
+## Third-party components
+
+No third-party source code is vendored in this repository. The plugin runs the Claude Code
+CLI that the user installs separately, and uses the model credentials the user has already
+configured in DeepSeek Harness. Neither is redistributed here.
+
+`assets/claude-mark.png` and `assets/claude-logo.png` are reproductions of the Claude
+wordmark and starburst used solely to identify the product this plugin drives. They are not
+covered by this project's MIT grant.
