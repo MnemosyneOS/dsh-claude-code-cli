@@ -234,6 +234,7 @@ CLI 以 `--permission-prompt-tool mcp__ccp-approval__approve` 启动，并带一
 | 翻看历史时被拽回底部 | 自动跟随按「有新输出」而非「已在底部」判断 | 2.5.2 已修；右上角圆形箭头可一键回底 |
 | 推理模型只有思考没有回复 | `blocks` 被合并进流式 thinking 行 | 2.5.2 已修，见知识库 ㉚ |
 | 思考过程全部想完才一次性出现 | CLI 没要增量、前端整批追加、渲染又把内容压成一行 | 2.5.3 已修 —— `--include-partial-messages` + 打字泵 + 流式时自动展开，见 ㉝ |
+| 更新后界面还是老样子 / 修了却「依然不行」 | 桌面端进程在文件修改前就启动了，加载的是旧代码 | 2.5.3 起面板顶部会直接提示「当前运行的是旧代码」；关闭窗口不算退出，需真正结束进程 |
 | `dsh: fatal load failure: EPERM ... rename` | 两个实例共用 `~/.dsh/ccp-data`，同时 rename 同一个 job 文件 | 2.5.3 已修 —— 写入重试且不再升级为 unhandledRejection，见 ㉞ |
 
 更多带根因与证据的记录见 [docs/architecture.md](docs/architecture.md)。

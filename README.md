@@ -251,6 +251,7 @@ and the plugin migrates older configs to it once (`settings_version`).
 | The transcript jumps to the bottom while reading | auto-follow keyed on "new output" instead of "already at the bottom" | fixed in 2.5.2; the round arrow at the top right jumps back down |
 | A reasoning model shows thinking but no answer | `blocks` merged into the streaming thinking row | fixed in 2.5.2; see the knowledge base entry ㉚ |
 | The thinking chain appears all at once, never while it happens | the CLI was not asked for deltas, the panel appended whole messages, and the row was collapsed to one line | fixed in 2.5.3 — `--include-partial-messages` + a typing pump + a row that opens while live; see entry ㉝ |
+| After an update the panel still behaves like the old build | the desktop process started before the files changed, so it runs the cached module | since 2.5.3 a notice above the transcript says the running code is old; closing the window is not quitting |
 | `dsh: fatal load failure: EPERM ... rename` | two instances sharing `~/.dsh/ccp-data` renamed the same job file | fixed in 2.5.3 — writes retry and never escape as an unhandled rejection; see entry ㉞ |
 
 More, with root causes and evidence, in [docs/architecture.md](docs/architecture.md) and the

@@ -20,6 +20,10 @@ This project follows [Semantic Versioning](https://semver.org/).
   as binned (they all came from the old delete button). Bulk actions follow the open list: restore and
   purge inside the bin, pin/archive/delete on live conversations.
 - Settings moved out of the `+` menu into the sidebar footer, next to the archive and bin it belongs with.
+- **An update that never loaded now says so, at the top of the conversation.** The panel used to look
+  and behave exactly like the build it had just replaced, which is how a fixed tool bug got reported as
+  "still broken": the desktop process had started before the fix existed. The stale-build notice moved
+  out of Settings → Advanced and onto the transcript, and clears itself once the running build is current.
 
 ### Fixed
 
