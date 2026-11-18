@@ -3,6 +3,23 @@
 All notable changes to **DSH-Claude Code CLI** are recorded here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [2.5.4] - 2026-11-18
+
+### Fixed
+
+- **An image attachment no longer kills the turn.** Uploading a screenshot and sending it with `@path`
+  made the model answer `（本轮未返回内容：Cannot read properties of undefined (reading 'attachmentId')）`,
+  followed by `Claude Code error`. The bridge forwarded Anthropic's image block as
+  `{ type:'image', source:{ type:'base64', ... } }`, but DSH content blocks require
+  `{ type:'image', attachment: ImageAttachmentRef }`; the adapter dereferenced a missing attachment id
+  and ended the stream with an error chunk. Images are now decoded and admitted once, in request order,
+  through `ctx.get('attachments').saveImages()`, then swapped into durable references — including images
+  replayed from CLI history and from tool results. A refused or unreadable image degrades to a text note
+  instead of failing the turn. Tool messages also carry the required `source: { kind:'tool', callId }`.
+  Request conversion errors now answer with a JSON 500 instead of taking down the DSH process.
+  Covered by `_verify_image` (8 checks: real upload → chat → local model, no error stats, no placeholder,
+  successful result), plus the existing tool and two-turn regressions.
+
 ## [2.5.3] - 2026-11-18
 
 ### Added

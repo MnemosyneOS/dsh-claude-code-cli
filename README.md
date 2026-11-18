@@ -253,6 +253,7 @@ and the plugin migrates older configs to it once (`settings_version`).
 | The thinking chain appears all at once, never while it happens | the CLI was not asked for deltas, the panel appended whole messages, and the row was collapsed to one line | fixed in 2.5.3 — `--include-partial-messages` + a typing pump + a row that opens while live; see entry ㉝ |
 | After an update the panel still behaves like the old build | the desktop process started before the files changed, so it runs the cached module | since 2.5.3 a notice above the transcript says the running code is old; closing the window is not quitting |
 | `dsh: fatal load failure: EPERM ... rename` | two instances sharing `~/.dsh/ccp-data` renamed the same job file | fixed in 2.5.3 — writes retry and never escape as an unhandled rejection; see entry ㉞ |
+| An image attachment returns `Cannot read properties of undefined (reading 'attachmentId')` / `Claude Code error` | Anthropic image blocks were forwarded with `source`, while DSH requires a durable `attachment` ref | fixed in 2.5.4 — images are admitted through `ctx.get('attachments')` and swapped in by reference; see entry ㉟ |
 
 More, with root causes and evidence, in [docs/architecture.md](docs/architecture.md) and the
 knowledge base shipped alongside this plugin.
@@ -291,15 +292,16 @@ node tools/verify/_verify_reply_unit.mjs            # 15 event-merge checks, no 
 node tools/verify/_verify_reply_ui.mjs "<token>"   # 13 — the answer must be painted
 node tools/verify/_verify_reply_history.mjs "<token>" # 15 — damaged records recover
 node tools/verify/_verify_scroll_ui.mjs "<token>"  # 22 — scroll position holds, arrow works
-node tools/verify/_verify_tool.mjs     "<token>"   # 12 — the model reads real tool output
+node tools/verify/_verify_tool.mjs     "<token>"   # 13 — the model reads real tool output
+node tools/verify/_verify_image.mjs    "<token>"   # 8  — an uploaded image does not kill the turn
 node tools/verify/_verify_split_ui.mjs "<token>"   # 12 — split view + Start pane
 node tools/verify/_verify_send_ui.mjs  "<token>"   # 6  — 40 MB attachment round trip
 node tools/verify/_verify_mobile_port.mjs "<token>" 9260  # 9 — port fallback
 node tools/verify/_verify_typing_ui.mjs "<token>"   # 18 — the chain types itself out
 ```
 
-Baseline at 2.5.3: **21/21**, **9/9**, **15/15**, **13/13**, **15/15**, **22/22**, **12/12**,
-**12/12**, **6/6**, **9/9**, **13/13**, **18/18**, plus a two-turn conversation on one session id.
+Baseline at 2.5.4: **21/21**, **9/9**, **15/15**, **13/13**, **15/15**, **22/22**, **12/12**,
+**12/12**, **6/6**, **9/9**, **13/13**, **18/18**, **8/8** (image), plus a two-turn conversation on one session id.
 
 The typing check samples the real DOM every 200 ms: a one-shot render can produce at most one step
 from zero to full, so the run requires many distinct intermediate lengths (measured: 95 steps between
