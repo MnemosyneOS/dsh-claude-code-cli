@@ -237,6 +237,7 @@ CLI 以 `--permission-prompt-tool mcp__ccp-approval__approve` 启动，并带一
 | 更新后界面还是老样子 / 修了却「依然不行」 | 桌面端进程在文件修改前就启动了，加载的是旧代码 | 2.5.3 起面板顶部会直接提示「当前运行的是旧代码」；关闭窗口不算退出，需真正结束进程 |
 | `dsh: fatal load failure: EPERM ... rename` | 两个实例共用 `~/.dsh/ccp-data`，同时 rename 同一个 job 文件 | 2.5.3 已修 —— 写入重试且不再升级为 unhandledRejection，见 ㉞ |
 | 发图片附件报 `Cannot read properties of undefined (reading 'attachmentId')` / `Claude Code error` | Anthropic 图片块带的是 `source`，DSH 要求的是持久化 `attachment` 引用 | 2.5.4 已修 —— 图片先经 `ctx.get('attachments')` 落库再换成引用，见 ㉟ |
+| 长的思考过程只显示一半 | 展开内容被截断到 8000 字，打字泵又封顶 400 字/秒 | 2.5.5 已修 —— 完整渲染，打字速度随积压自动提升，见 ㊱ |
 
 更多带根因与证据的记录见 [docs/architecture.md](docs/architecture.md)。
 
@@ -275,14 +276,16 @@ node tools/verify/_verify_reply_history.mjs "<token>"  # 15 项：坏记录可�
 node tools/verify/_verify_scroll_ui.mjs "<token>"  # 22 项：滚动位置不被拽走 + 箭头
 node tools/verify/_verify_tool.mjs     "<token>"   # 13 项：模型必须读到真实工具输出
 node tools/verify/_verify_image.mjs    "<token>"   # 8 项：发图片不再让本轮失败
+node tools/verify/_verify_thinking_full.mjs "<token>" # 7 项：长思考链完整显示
 node tools/verify/_verify_split_ui.mjs "<token>"   # 12 项：分栏 + Start 面板
 node tools/verify/_verify_send_ui.mjs  "<token>"   # 6 项：40MB 附件往返
 node tools/verify/_verify_mobile_port.mjs "<token>" 9260  # 9 项：端口让位
 node tools/verify/_verify_typing_ui.mjs "<token>"   # 18 项：思考链必须逐字出现
 ```
 
-2.5.4 基线：**21/21**、**9/9**、**15/15**、**13/13**、**15/15**、**22/22**、**12/12**、
-**12/12**、**6/6**、**9/9**、**13/13**、**18/18**、**8/8**（图片），以及同一会话内的两轮对话。
+2.5.5 基线：**21/21**、**9/9**、**15/15**、**13/13**、**15/15**、**22/22**、**12/12**、
+**12/12**、**6/6**、**9/9**、**13/13**、**18/18**、**8/8**（图片）、**7/7**（长思考链），
+以及同一会话内的两轮对话。
 
 逐字验证每 200ms 采样一次真实 DOM：一次性渲染最多只会有「0 → 全长」一步，所以要求出现大量
 不同的中间长度（实测思考链 0→928 字之间有 95 个中间值，正文 0→446 字之间有 36 个）。

@@ -3,6 +3,20 @@
 All notable changes to **DSH-Claude Code CLI** are recorded here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [2.5.5] - 2026-11-18
+
+### Fixed
+
+- **Long thinking chains are no longer cut off.** The expanded thinking row sliced its detail to
+  8,000 characters, so a real 30,000-character chain silently lost everything after that mark
+  while still looking like a complete row. The cap is gone. The typing pump also had a 400 chars/s
+  ceiling: a long chain fell minutes behind the model and only appeared in full in the final flush.
+  It now scales up to 6,000 chars/s for large backlogs (still typed in many frames), and consecutive
+  1–3 character deltas are coalesced in the queue instead of creating tens of thousands of entries.
+  Covered by `_verify_thinking_full` (7 checks on a 46,918-character chain, including its final
+  marker); the old build fails 2/7 at exactly 8,000 characters. The existing typing check stays
+  18/18 (134 distinct intermediate chain lengths).
+
 ## [2.5.4] - 2026-11-18
 
 ### Fixed
