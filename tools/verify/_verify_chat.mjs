@@ -101,6 +101,11 @@ try {
 
 if (err) { console.error('\nFAIL chat regression :: ' + err.message); process.exit(1) }
 const ok1 = t1.text.length > 0
-const ok2 = /42/.test(t2.text)
+// The contract under test is "the second turn resumes the same CLI transcript",
+// not "a small local model gets arithmetic right" — 6x7 came back as "4" once,
+// and the job record proved the model itself wrote that, so grading the maths
+// only produced false alarms.
+const ok2 = t2.text.length > 0 && Boolean(t2.cliSession) && t2.cliSession === t1.cliSession
+if (!ok2) console.error('turn2 session=' + String(t2.cliSession) + ' turn1 session=' + String(t1.cliSession))
 console.log(ok1 && ok2 ? '\nPASS chat regression (2 turns, history replay OK)' : '\nFAIL chat regression')
 process.exit(ok1 && ok2 ? 0 : 1)

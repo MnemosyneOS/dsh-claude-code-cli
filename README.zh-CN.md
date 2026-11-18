@@ -233,6 +233,8 @@ CLI 以 `--permission-prompt-tool mcp__ccp-approval__approve` 启动，并带一
 | 所有工具都返回 `No result provided` | 工具结果被塞进 user 消息的 parts，DSH 只读 text/image | 2.5.2 已修 —— 结果走独立 `role:'tool'` 消息 |
 | 翻看历史时被拽回底部 | 自动跟随按「有新输出」而非「已在底部」判断 | 2.5.2 已修；右上角圆形箭头可一键回底 |
 | 推理模型只有思考没有回复 | `blocks` 被合并进流式 thinking 行 | 2.5.2 已修，见知识库 ㉚ |
+| 思考过程全部想完才一次性出现 | CLI 没要增量、前端整批追加、渲染又把内容压成一行 | 2.5.3 已修 —— `--include-partial-messages` + 打字泵 + 流式时自动展开，见 ㉝ |
+| `dsh: fatal load failure: EPERM ... rename` | 两个实例共用 `~/.dsh/ccp-data`，同时 rename 同一个 job 文件 | 2.5.3 已修 —— 写入重试且不再升级为 unhandledRejection，见 ㉞ |
 
 更多带根因与证据的记录见 [docs/architecture.md](docs/architecture.md)。
 
@@ -273,10 +275,14 @@ node tools/verify/_verify_tool.mjs     "<token>"   # 12 项：模型必须读到
 node tools/verify/_verify_split_ui.mjs "<token>"   # 12 项：分栏 + Start 面板
 node tools/verify/_verify_send_ui.mjs  "<token>"   # 6 项：40MB 附件往返
 node tools/verify/_verify_mobile_port.mjs "<token>" 9260  # 9 项：端口让位
+node tools/verify/_verify_typing_ui.mjs "<token>"   # 18 项：思考链必须逐字出现
 ```
 
-2.5.2 基线：**21/21**、**9/9**、**15/15**、**13/13**、**15/15**、**22/22**、**12/12**、
-**12/12**、**6/6**、**9/9**，以及同一会话内的两轮对话（`好的` → `42`）。
+2.5.3 基线：**21/21**、**9/9**、**15/15**、**13/13**、**15/15**、**22/22**、**12/12**、
+**12/12**、**6/6**、**9/9**、**13/13**、**18/18**，以及同一会话内的两轮对话。
+
+逐字验证每 200ms 采样一次真实 DOM：一次性渲染最多只会有「0 → 全长」一步，所以要求出现大量
+不同的中间长度（实测思考链 0→928 字之间有 95 个中间值，正文 0→446 字之间有 36 个）。
 对话脚本会临时固定一个可用文本模型，验完还原你原来的选择，不会把你的模型选择器改走。
 
 ## 授权与商标

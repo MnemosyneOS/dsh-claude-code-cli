@@ -135,13 +135,15 @@ check('the model quoted all three real outputs',
 check('no tool result was reported missing', !/No result provided/i.test(t1.reply),
   JSON.stringify((t1.reply.match(/.{0,30}No result provided.{0,20}/i) || [''])[0]))
 // The contract under test is "the model sees what the tool returned", not "the
-// model writes good shell". If a command failed, the reply must still carry the
-// real failure text — proving the result reached the model either way.
-const failedOutputs = t1.toolResults
-  .map((r) => String(r.text || '').trim())
-  .filter((x) => x && !/ccp-tool-/.test(x))
-if (failedOutputs.length) {
-  const sample = failedOutputs[0].split(/\r?\n/)[0].slice(0, 40)
+// model writes good shell". A model may also run its own probe commands, whose
+// output it is under no obligation to quote — so only a *failed* call must show
+// up in the reply, and no call may come back empty.
+const emptyResults = t1.toolResults.filter((r) => !String(r.text || '').trim())
+check('no tool call came back empty', emptyResults.length === 0,
+  emptyResults.length + ' empty of ' + t1.toolResults.length)
+const errored = t1.toolResults.filter((r) => r.isError)
+if (errored.length) {
+  const sample = String(errored[0].text || '').split(/\r?\n/)[0].slice(0, 40)
   check('a failed tool call still reached the model', t1.reply.includes(sample),
     'expected ' + JSON.stringify(sample) + ' in reply')
 } else {

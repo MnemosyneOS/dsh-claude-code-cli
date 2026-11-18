@@ -250,6 +250,8 @@ and the plugin migrates older configs to it once (`settings_version`).
 | Every tool returns `No result provided` | tool results were packed as parts of a user message; DSH only reads text/image there | fixed in 2.5.2 — results travel as their own `role: 'tool'` message |
 | The transcript jumps to the bottom while reading | auto-follow keyed on "new output" instead of "already at the bottom" | fixed in 2.5.2; the round arrow at the top right jumps back down |
 | A reasoning model shows thinking but no answer | `blocks` merged into the streaming thinking row | fixed in 2.5.2; see the knowledge base entry ㉚ |
+| The thinking chain appears all at once, never while it happens | the CLI was not asked for deltas, the panel appended whole messages, and the row was collapsed to one line | fixed in 2.5.3 — `--include-partial-messages` + a typing pump + a row that opens while live; see entry ㉝ |
+| `dsh: fatal load failure: EPERM ... rename` | two instances sharing `~/.dsh/ccp-data` renamed the same job file | fixed in 2.5.3 — writes retry and never escape as an unhandled rejection; see entry ㉞ |
 
 More, with root causes and evidence, in [docs/architecture.md](docs/architecture.md) and the
 knowledge base shipped alongside this plugin.
@@ -292,10 +294,15 @@ node tools/verify/_verify_tool.mjs     "<token>"   # 12 — the model reads real
 node tools/verify/_verify_split_ui.mjs "<token>"   # 12 — split view + Start pane
 node tools/verify/_verify_send_ui.mjs  "<token>"   # 6  — 40 MB attachment round trip
 node tools/verify/_verify_mobile_port.mjs "<token>" 9260  # 9 — port fallback
+node tools/verify/_verify_typing_ui.mjs "<token>"   # 18 — the chain types itself out
 ```
 
-Baseline at 2.5.2: **21/21**, **9/9**, **15/15**, **13/13**, **15/15**, **22/22**, **12/12**,
-**12/12**, **6/6**, **9/9**, plus a two-turn conversation (`好的` → `42`) on one session id. The chat harness pins a working text model and restores your previous selection
+Baseline at 2.5.3: **21/21**, **9/9**, **15/15**, **13/13**, **15/15**, **22/22**, **12/12**,
+**12/12**, **6/6**, **9/9**, **13/13**, **18/18**, plus a two-turn conversation on one session id.
+
+The typing check samples the real DOM every 200 ms: a one-shot render can produce at most one step
+from zero to full, so the run requires many distinct intermediate lengths (measured: 95 steps between
+0 and 928 characters for the chain, 36 for the answer). The chat harness pins a working text model and restores your previous selection
 afterwards, so it never leaves your model picker moved.
 
 ## License and trademarks

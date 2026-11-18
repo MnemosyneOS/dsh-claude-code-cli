@@ -3,6 +3,33 @@
 All notable changes to **DSH-Claude Code CLI** are recorded here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [2.5.3] - 2026-11-18
+
+### Added
+
+- **The thinking chain is now typed out while it happens.** It used to arrive as one finished block:
+  the CLI was not asked for provider deltas, the panel appended whole messages, and the thinking row
+  was collapsed to a single line anyway — so the process was invisible and only the result appeared.
+  Three changes make it visible together: `--include-partial-messages` on the CLI, a typing pump in the
+  panel that releases a few characters per frame (paced so a long chain still keeps up), and a thinking
+  row that opens itself while it is live and scrolls its own detail box. Measured on a real local model:
+  95 distinct intermediate lengths between 0 and 928 characters.
+- **Archive and the recycle bin are now separate lists.** "Archive" and "delete" both only set
+  `archived`, so the two were the same pile. Delete now also sets `deleted`, the sidebar footer offers
+  archive / recycle bin / settings as three icon buttons, and records filed before the split are treated
+  as binned (they all came from the old delete button). Bulk actions follow the open list: restore and
+  purge inside the bin, pin/archive/delete on live conversations.
+- Settings moved out of the `+` menu into the sidebar footer, next to the archive and bin it belongs with.
+
+### Fixed
+
+- **A job write could take the whole plugin down.** `writeJson` renamed a temp file over the target,
+  which on Windows fails with `EPERM` while another process holds the file open — the normal case when
+  the desktop app, a phone-access instance and a verification instance share `~/.dsh/ccp-data`. The
+  rejection escaped the stdout reader and surfaced as `dsh: fatal load failure`, killing the instance
+  mid-turn. Writes now retry with backoff and fall back to writing through the handle, and the reader
+  can no longer throw.
+
 ## [2.5.2] - 2026-11-17
 
 ### Fixed
