@@ -3,6 +3,34 @@
 All notable changes to **DSH-Claude Code CLI** are recorded here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [2.5.7] - 2026-11-19
+
+### Fixed
+
+- **Long resumed sessions no longer die with `exceed_context_size_error`.** `--resume` makes Claude CLI
+  replay its entire transcript; the legal-review session had grown to 1.79 MB and the local Qwen model
+  received 131,770 prompt tokens against a 131,072 window. The CLI's own default auto-compact threshold
+  followed a 1M-token value reported by the model catalog, so it never fired. Three layers now prevent
+  the overflow: the CLI is launched with `--autocompact 100000` when the installed binary supports it;
+  the protocol bridge trims replayed history to a hard budget before DSH sees it (15% headroom, newest
+  messages always kept, with a system notice when older turns are omitted); and token estimation now
+  weights CJK characters, since `chars / 4` measured a real 134k-token Chinese transcript as only 75k.
+- **The raw provider JSON is no longer dumped into the chat.** `exceed_context_size_error` is translated
+  into a Chinese hint that reports the actual token counts and points to the new
+  `设置 → 会话 → 自动压缩阈值（Token）` control, or to starting a new session. The old "check your
+  credentials/quota" advice is replaced for this specific failure.
+- **Session names are now stable topic phrases.** A small local model kept returning a 24-character
+  verbatim slice of the prompt instead of a topic, e.g. `请根据我上传的一审判决书和全部证据材料，独立完成`.
+  Recognised domains (labour dispute/appeal, résumé, Python errors, contracts, papers) now use a
+  deterministic short topic such as `劳动争议二审分析`; for other domains a model candidate is accepted
+  only if it is ≤16 characters, has no sentence punctuation and is not a copy of the prompt.
+
+### Added
+
+- `设置 → 会话 → 自动压缩阈值（Token）` (default 100000). It drives both the CLI auto-compact flag and
+  the bridge's history budget. Covered by `_verify_context_overflow` (16 checks); title behaviour is
+  covered by `_verify_title_stable` (9 checks, previously 7/9).
+
 ## [2.5.6] - 2026-11-19
 
 ### Fixed

@@ -256,6 +256,7 @@ and the plugin migrates older configs to it once (`settings_version`).
 | An image attachment returns `Cannot read properties of undefined (reading 'attachmentId')` / `Claude Code error` | Anthropic image blocks were forwarded with `source`, while DSH requires a durable `attachment` ref | fixed in 2.5.4 — images are admitted through `ctx.get('attachments')` and swapped in by reference; see entry ㉟ |
 | A long thinking chain stops mid-sentence | the expanded detail was sliced to 8,000 characters and the typing pump capped at 400 chars/s | fixed in 2.5.5 — full detail is rendered and the pump scales with backlog; see entry ㊱ |
 | A just-sent instruction vanishes once the model starts thinking | overlapping fire-and-forget history saves: a stale snapshot finished last and wrote a shorter message list | fixed in 2.5.6 — saves carry a monotonic revision and older writes are rejected; see entry ㊲ |
+| `exceed_context_size_error` / `request (131770 tokens) exceeds the available context size` | `--resume` replays the whole transcript; a long Chinese session exceeds the local 131k window while the CLI's default compact threshold follows a reported 1M context | fixed in 2.5.7 — `--autocompact 100000`, a CJK-aware hard budget in the bridge, and an actionable Chinese hint; tune `设置 → 会话 → 自动压缩阈值（Token）` |
 
 More, with root causes and evidence, in [docs/architecture.md](docs/architecture.md) and the
 knowledge base shipped alongside this plugin.
@@ -303,12 +304,15 @@ node tools/verify/_verify_mobile_port.mjs "<token>" 9260  # 9 — port fallback
 node tools/verify/_verify_typing_ui.mjs "<token>"   # 18 — the chain types itself out
 node tools/verify/_verify_save_guard.mjs "<token>"  # 5  — stale history saves are rejected
 node tools/verify/_verify_usermsg_persist.mjs "<token>" # 9 — sent messages survive later turns
+node tools/verify/_verify_context_overflow.mjs "<token>" # 16 — autocompact argv, history trim, friendly error
+node tools/verify/_verify_title_stable.mjs "<token>" # 9 — stable topic names, locked renames
 ```
 
-Baseline at 2.5.6: **21/21**, **9/9**, **15/15**, **13/13**, **15/15**, **22/22**, **12/12**,
+Baseline at 2.5.7: **21/21**, **9/9**, **15/15**, **13/13**, **15/15**, **22/22**, **12/12**,
 **12/12**, **6/6**, **9/9**, **13/13**, **18/18**, **8/8** (image), **10/10** (long thinking),
-**5/5** (save guard), **9/9** (message persistence),
-plus a two-turn conversation on one session id.
+**5/5** (save guard), **9/9** (message persistence), **16/16** (context overflow), **9/9** (title),
+plus a two-turn conversation on one session id. The scroll check passed 22/22 on a clean rerun after
+one flaky full-suite pass (18/22) caused by browser timing.
 
 The typing check samples the real DOM every 200 ms: a one-shot render can produce at most one step
 from zero to full, so the run requires many distinct intermediate lengths (measured: 95 steps between
