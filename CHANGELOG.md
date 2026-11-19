@@ -3,6 +3,20 @@
 All notable changes to **DSH-Claude Code CLI** are recorded here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [2.5.6] - 2026-11-19
+
+### Fixed
+
+- **A just-sent instruction no longer disappears from the conversation.** Each turn wrote history in a
+  fire-and-forget task that captured the session snapshot at turn start and had no ordering. When the
+  title call (a local model, up to 15 s) was still running, a rapid follow-up or a second DSH instance
+  sharing `~/.dsh/ccp-data` could finish a save last with a stale, shorter message list — silently
+  dropping the newest user message while its reply stayed. Symptom: "I sent an instruction, the model
+  started thinking, and my instruction was gone" — the prompt survived only in the job record and the
+  session title. Saves now carry a monotonic revision ordered per session; the backend rejects any
+  older revision, and the front end lets only the newest in-flight save write. Explicit edits
+  (delete/prune/rename, which carry no revision) still apply.
+
 ## [2.5.5] - 2026-11-18
 
 ### Fixed

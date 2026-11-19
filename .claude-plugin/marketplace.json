@@ -10,7 +10,7 @@
       "name": "dsh-claude-code-cli",
       "displayName": "DSH Claude Bridge",
       "source": "./integrations/claude-code",
-      "version": "2.5.5",
+      "version": "2.5.6",
       "description": "Teaches Claude Code how to drive the Claude Code Desktop workspace this repo ships for DeepSeek Harness: the loopback bridge, the model catalogue, the turn/poll event stream, and the approval flow. The DSH-side plugin itself installs by linking this repo into a DSH profile.",
       "homepage": "https://github.com/MnemosyneOS/dsh-claude-code-cli",
       "repository": "https://github.com/MnemosyneOS/dsh-claude-code-cli",

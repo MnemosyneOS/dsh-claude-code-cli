@@ -96,17 +96,25 @@ async function evaluate(expr) {
 }
 
 // The snapshot of the last assistant turn: what the panel actually painted.
-const SNAPSHOT = `(() => {
+const SNAPSHOT = `(async () => {
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
   const root = document.querySelector('.ccp-root')
   if (!root) return { noRoot: true }
   const groups = Array.from(root.querySelectorAll('.ccp-msg')).filter((m) => !m.classList.contains('user'))
   const last = groups[groups.length - 1]
   const think = last ? last.querySelector('.ccp-work-think') : null
+  // Thinking rows are bare toggles now: the text lives in the expanded detail.
+  if (think && !think.querySelector('.ccp-work-detail')) {
+    think.querySelector('.ccp-work-row')?.click()
+    await sleep(120)
+  }
+  const thinkText = think ? ((think.querySelector('.ccp-work-detail')?.textContent)
+    || (think.innerText || '')).replace(/\\s+/g, ' ').trim() : ''
   const bodies = last ? Array.from(last.querySelectorAll('.ccp-readable')).map((x) => (x.innerText || '').trim()).filter(Boolean) : []
   return {
     busy: Boolean(root.querySelector('.ccp-loading')),
     turns: groups.length,
-    thinkText: think ? (think.innerText || '').replace(/\\s+/g, ' ').trim() : '',
+    thinkText,
     bodies,
     body: bodies.join('\\n'),
     whole: (root.innerText || '').slice(-600),

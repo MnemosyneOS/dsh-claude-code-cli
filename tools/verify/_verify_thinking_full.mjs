@@ -129,7 +129,7 @@ const opened = await waitFor(() => evaluate(OPEN_PANEL), 40000)
 check('panel opens', Boolean(opened))
 if (!opened) { ws.close(); chrome.kill(); process.exit(1) }
 
-const clicked = await evaluate(`(async () => {
+const openedRow = await evaluate(`(async () => {
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
   const items = Array.from(document.querySelectorAll('.ccp-root .ccp-item'))
   const mine = items.find((it) => (it.querySelector('.ccp-item-title')?.textContent || '').includes(${JSON.stringify(TITLE)}))
@@ -138,11 +138,18 @@ const clicked = await evaluate(`(async () => {
   await sleep(2500)
   const row = document.querySelector('.ccp-root .ccp-work-think .ccp-work-row')
   if (!row) return { ok: false, why: 'no thinking row' }
+  const bare = { text: (row.textContent || '').trim(), title: row.getAttribute('title') || '' }
   row.click()
   await sleep(600)
-  return { ok: true }
+  return { ok: true, bare }
 })()`)
-check('the long thinking row opens', Boolean(clicked?.ok), JSON.stringify(clicked))
+check('the long thinking row opens', Boolean(openedRow?.ok), JSON.stringify(openedRow))
+check('the thinking field stays next to the icon', Boolean(openedRow?.bare?.text?.includes('思考过程')),
+  JSON.stringify(openedRow?.bare))
+check('the trailing one-line preview is gone', Boolean(openedRow?.bare && !openedRow.bare.text.includes('第0步')),
+  JSON.stringify(openedRow?.bare))
+check('the toggle still explains itself on hover', Boolean(openedRow?.bare?.title),
+  JSON.stringify(openedRow?.bare))
 
 const snap = await evaluate(`(() => {
   const pre = document.querySelector('.ccp-root .ccp-work-think .ccp-work-detail')

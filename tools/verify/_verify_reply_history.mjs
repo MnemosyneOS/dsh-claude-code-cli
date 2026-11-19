@@ -85,17 +85,24 @@ async function evaluate(expr) {
   return r.result?.value
 }
 
-const SNAPSHOT = `(() => {
+const SNAPSHOT = `(async () => {
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
   const root = document.querySelector('.ccp-root')
   if (!root) return { noRoot: true }
   const groups = Array.from(root.querySelectorAll('.ccp-msg')).filter((m) => !m.classList.contains('user'))
   const last = groups[groups.length - 1]
   const think = last ? last.querySelector('.ccp-work-think') : null
+  if (think && !think.querySelector('.ccp-work-detail')) {
+    think.querySelector('.ccp-work-row')?.click()
+    await sleep(120)
+  }
+  const thinkText = think ? ((think.querySelector('.ccp-work-detail')?.textContent)
+    || (think.innerText || '')).replace(/\\s+/g, ' ').trim() : ''
   const bodies = last ? Array.from(last.querySelectorAll('.ccp-readable')).map((x) => (x.innerText || '').trim()).filter(Boolean) : []
   const foot = last ? last.querySelector('.ccp-respfoot') : null
   return {
     turns: groups.length,
-    thinkText: think ? (think.innerText || '').replace(/\\s+/g, ' ').trim() : '',
+    thinkText,
     bodies,
     body: bodies.join('\\n'),
     copyBtns: foot ? foot.querySelectorAll('.ccp-foot-ico').length : 0,
@@ -246,7 +253,12 @@ if (!broken.length) {
     const groups = Array.from(root.querySelectorAll('.ccp-msg')).filter((m) => !m.classList.contains('user'))
     const last = groups[groups.length - 1]
     const think = last?.querySelector('.ccp-work-think')
-    const thinkText = think ? (think.innerText || '').replace(/\\s+/g, ' ').trim() : ''
+    if (think && !think.querySelector('.ccp-work-detail')) {
+      think.querySelector('.ccp-work-row')?.click()
+      await sleep(150)
+    }
+    const thinkText = think ? ((think.querySelector('.ccp-work-detail')?.textContent)
+      || (think.innerText || '')).replace(/\\s+/g, ' ').trim() : ''
     const bodies = last ? Array.from(last.querySelectorAll('.ccp-readable')).map((x) => (x.innerText || '').trim()).filter(Boolean) : []
     const body = bodies.join(' ').replace(/\\s+/g, ' ')
     return {
