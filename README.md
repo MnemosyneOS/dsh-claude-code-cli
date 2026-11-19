@@ -260,6 +260,7 @@ and the plugin migrates older configs to it once (`settings_version`).
 | Thinking stops appearing when the reply also runs tools | the typing pump counted text queued *behind* a tool marker, so the marker at the head was never released and later thinking was unreachable | fixed in 2.5.8 — head markers release immediately; backlog is measured only over the leading text run; see entry ㊴ |
 | Scrolling up inside a live thinking chain snaps back down | the detail box forced `scrollTop = scrollHeight` on every delta | fixed in 2.5.9 — follow only while already at the bottom, plus a ↓ jump button; see entry ㊵ |
 | A cancelled/switched task shows "check the provider's credentials/quota" | the job died with `Connection error.` / `terminated`, but every provider failure shared one generic advice string | fixed in 2.5.10 — dropped streams are translated into a Chinese connection hint; credentials/quota advice only applies to real auth failures; see entry ㊶ |
+| The plugin panel suddenly goes completely blank | one render exception unmounted the whole React 18 tree; the renderer process stayed alive so no crash log was written | fixed in 2.5.11 — error boundary shows a recoverable card with Retry; exceptions are logged to `ccp-data/ui-errors.log`; lone UTF-16 surrogates from GBK-misdecoded output are sanitized; see entry ㊷ |
 
 More, with root causes and evidence, in [docs/architecture.md](docs/architecture.md) and the
 knowledge base shipped alongside this plugin.
@@ -313,10 +314,10 @@ node tools/verify/_verify_pump_interleave.mjs         # 8  — tools cannot free
 node tools/verify/_verify_thinking_scroll.mjs          # 9  — reading an early thought holds position
 ```
 
-Baseline at 2.5.10: **21/21**, **9/9**, **15/15**, **13/13**, **15/15**, **22/22**, **12/12**,
+Baseline at 2.5.11: **21/21**, **9/9**, **15/15**, **13/13**, **15/15**, **22/22**, **12/12**,
 **12/12**, **6/6**, **9/9**, **13/13**, **18/18**, **8/8** (image), **10/10** (long thinking),
 **5/5** (save guard), **9/9** (message persistence), **17/17** (context overflow), **9/9** (title),
-**8/8** (pump interleave), **9/9** (thinking scroll),
+**8/8** (pump interleave), **9/9** (thinking scroll), **16/16** (blank-screen guard),
 plus a two-turn conversation on one session id. The scroll check passed 22/22 on a clean rerun after
 one flaky full-suite pass (18/22) caused by browser timing.
 

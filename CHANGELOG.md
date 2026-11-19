@@ -3,6 +3,29 @@
 All notable changes to **DSH-Claude Code CLI** are recorded here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [2.5.11] - 2026-11-19
+
+### Fixed
+
+- **The panel no longer goes completely blank when one message fails to render.** A single render
+  exception used to unmount the entire React 18 tree, and because the renderer *process* stayed
+  alive DSH wrote no crash log — leaving a pure white panel with no diagnostic. The main view is now
+  wrapped in an error boundary that shows a recoverable "Panel failed to render" card with a Retry
+  button instead. `window.error` and `unhandledrejection` are also captured. Every exception is
+  posted to the host and appended to `ccp-data/ui-errors.log` (and the DSH log), so a future failure
+  is diagnosable instead of silent.
+- **Malformed model output is sanitized before reaching the DOM.** GBK/UTF-16 mis-decodes in tool
+  output leave lone surrogates (U+D800–DFFF) — observed 38 of them in a long legal-document session.
+  These are legal in a JS string but malformed for the DOM; they are now replaced with U+FFFD in
+  `renderInline()` before any `dangerouslySetInnerHTML`.
+
+### Verification
+
+- `_verify_blank_screen` **16/16** (new): error boundary, retry, fallback copy, async hooks,
+  surrogate sanitization, host error-log route.
+- Regressions: `_verify_context_overflow` 17/17, `_verify_pump_interleave` 8/8,
+  `_verify_thinking_scroll` 9/9, `_verify_reply_unit` 15/15.
+
 ## [2.5.10] - 2026-11-19
 
 ### Fixed

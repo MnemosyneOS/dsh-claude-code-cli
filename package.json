@@ -1,6 +1,6 @@
 {
   "name": "@local/dsh-claude-code-cli",
-  "version": "2.5.10",
+  "version": "2.5.11",
   "description": "DSH-Claude Code CLI — Claude Code Desktop for DeepSeek Harness — a graphical, non-terminal Claude Code workspace with sessions, tool approvals, full CLI settings surface, attachments, i18n and mobile access. Port of Hermes claude-code-parity 2.5.1.",
   "private": true,
   "type": "module",
