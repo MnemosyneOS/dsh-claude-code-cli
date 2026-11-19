@@ -3,6 +3,45 @@
 All notable changes to **DSH-Claude Code CLI** are recorded here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [2.5.12] - 2026-11-19
+
+### Added
+
+- **Compaction is announced before it happens.** Automatic history trimming used to be silent: the
+  transcript shifted, the model appeared to "forget" the earlier turns, and nothing explained why.
+  A slim amber bar now appears above the transcript once the context passes **75%** ("the next
+  request compacts the early history into a semantic summary — nothing is deleted") and switches to a
+  firmer wording at **90%**. It is dismissible, and dismissal is keyed to a 10% band, so it goes quiet
+  for the rest of that band but returns only once the context genuinely grew another 10% instead of
+  nagging on every render. No denominator is ever invented: without the CLI's own `contextWindow`
+  there is no percentage and no bar.
+- **Dropped history is summarised instead of discarded.** When the bridge has to trim, it no longer
+  keeps a bare "N earlier messages omitted" note. It now extracts a deterministic digest from the
+  messages it is about to drop — the user's asks, the operations that were run, the conclusions
+  reached, and the files involved — and prepends that, so the model can continue instead of repeating
+  finished work. The digest is scaled to the budget (10% of `contextBudget`, clamped to 200–1600
+  characters) so the summary itself can never cause the overflow it exists to prevent.
+
+### Changed
+
+- **The conversation now shares one left edge.** The user bubble, assistant body, thinking row,
+  loading line and composer all start on the same text baseline. The bubble widens outward with a
+  negative margin so the *text* aligns rather than the background; the thinking icon is absolutely
+  positioned instead of consuming flex width (which had pushed its label 19px to the right); and the
+  blocks share one line-height ratio (1.55) so their rhythm matches despite different font sizes.
+
+### Verification
+
+- `_verify_ctx_nudge` **54/54** (new): the shipped `ctxNudge` function is sliced out of
+  `lib/client.js` and evaluated, so the truth table covers thresholds, level switch, banded
+  dismissal, missing/NaN/negative/over-full inputs, and the no-window case.
+- `_verify_semantic_compact` **25/25** (new): digest content, labels, bounding, scaling across
+  budgets, and trim edge cases.
+- `_verify_alignment` **13/13** (new): real geometry measured over CDP — one baseline, outward
+  bubble, indented thinking detail, matching line rhythm, no horizontal overflow.
+- Regressions: `_verify_blank_screen` 16/16, `_verify_context_overflow` 17/17,
+  `_verify_pump_interleave` 8/8, `_verify_thinking_scroll` 9/9, `_verify_reply_unit` 15/15.
+
 ## [2.5.11] - 2026-11-19
 
 ### Fixed

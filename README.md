@@ -155,9 +155,10 @@ already has. Send a message.
 | :- | :- |
 | Composer | model picker (bottom right), permission mode, workspace picker, attachments, paste-anywhere |
 | Per reply | model name, timestamp, token speed, cache hit rate, copy, branch into a new session |
-| Context | a ring progress indicator in the composer, fed by the CLI's own `modelUsage` |
+| Context | a ring progress indicator in the composer, fed by the CLI's own `modelUsage`, plus a bar that warns at 75% / 90% before auto-compaction happens |
 | History | rename, pin, archive, restore, permanent delete, batch operations, copy ID, groups |
 | Thinking | a collapsible timeline, visually distinct from the answer, with a status icon per step |
+| Compaction | trimming the history yields a semantic digest (asks, actions, conclusions, files) sized to the budget, not a bare "N messages dropped" |
 
 Diagnostics live at `GET /api/claude-code-parity/health` (bridge port, CLI path, version),
 plus `/cli`, `/models` and `/upgrade/status`.
@@ -312,14 +313,21 @@ node tools/verify/_verify_context_overflow.mjs "<token>" # 17 — autocompact ar
 node tools/verify/_verify_title_stable.mjs "<token>" # 9 — stable topic names, locked renames
 node tools/verify/_verify_pump_interleave.mjs         # 8  — tools cannot freeze the thinking pump
 node tools/verify/_verify_thinking_scroll.mjs          # 9  — reading an early thought holds position
+node tools/verify/_verify_semantic_compact.mjs         # 25 — dropped history becomes a semantic digest
+node tools/verify/_verify_alignment.mjs                # 13 — one text baseline, one line rhythm
+node tools/verify/_verify_ctx_nudge.mjs                # 54 — compaction is announced before it happens
 ```
 
-Baseline at 2.5.11: **21/21**, **9/9**, **15/15**, **13/13**, **15/15**, **22/22**, **12/12**,
+Baseline at 2.5.12: **21/21**, **9/9**, **15/15**, **13/13**, **15/15**, **22/22**, **12/12**,
 **12/12**, **6/6**, **9/9**, **13/13**, **18/18**, **8/8** (image), **10/10** (long thinking),
 **5/5** (save guard), **9/9** (message persistence), **17/17** (context overflow), **9/9** (title),
 **8/8** (pump interleave), **9/9** (thinking scroll), **16/16** (blank-screen guard),
+**25/25** (semantic compact), **13/13** (alignment), **54/54** (context nudge),
 plus a two-turn conversation on one session id. The scroll check passed 22/22 on a clean rerun after
 one flaky full-suite pass (18/22) caused by browser timing.
+
+The last five suites that take a `<token>` need a **running** DSH instance; they cannot be exercised
+from a bare checkout. Everything else is self-contained and runs offline.
 
 The typing check samples the real DOM every 200 ms: a one-shot render can produce at most one step
 from zero to full, so the run requires many distinct intermediate lengths (measured: 95 steps between
