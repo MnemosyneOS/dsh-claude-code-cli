@@ -3,6 +3,17 @@
 All notable changes to **DSH-Claude Code CLI** are recorded here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [2.5.9] - 2026-11-19
+
+### Fixed
+
+- **Scrolling up inside a live thinking chain now stays put.** `WorkRow` set `el.scrollTop =
+  el.scrollHeight` on every thinking delta, so a long chain yanked the reader back to the newest line
+  several times a second and the beginning was unreadable. Auto-follow is now conditional on the box
+  already being at its bottom (`detailFollowsBottom`, 24 px tolerance); when it is not, a small
+  ↓ button in the row header returns to the newest line. Covered by `_verify_thinking_scroll`
+  (9 checks, including a reverse proof that the old rule yanked a parked box).
+
 ## [2.5.8] - 2026-11-19
 
 ### Fixed

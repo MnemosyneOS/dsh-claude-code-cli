@@ -258,6 +258,7 @@ and the plugin migrates older configs to it once (`settings_version`).
 | A just-sent instruction vanishes once the model starts thinking | overlapping fire-and-forget history saves: a stale snapshot finished last and wrote a shorter message list | fixed in 2.5.6 — saves carry a monotonic revision and older writes are rejected; see entry ㊲ |
 | `exceed_context_size_error` / `request (131770 tokens) exceeds the available context size` | `--resume` replays the whole transcript; a long Chinese session exceeds the local 131k window while the CLI's default compact threshold follows a reported 1M context | fixed in 2.5.7 — `--autocompact 100000`, a CJK-aware hard budget in the bridge, and an actionable Chinese hint; tune `设置 → 会话 → 自动压缩阈值（Token）` |
 | Thinking stops appearing when the reply also runs tools | the typing pump counted text queued *behind* a tool marker, so the marker at the head was never released and later thinking was unreachable | fixed in 2.5.8 — head markers release immediately; backlog is measured only over the leading text run; see entry ㊴ |
+| Scrolling up inside a live thinking chain snaps back down | the detail box forced `scrollTop = scrollHeight` on every delta | fixed in 2.5.9 — follow only while already at the bottom, plus a ↓ jump button; see entry ㊵ |
 
 More, with root causes and evidence, in [docs/architecture.md](docs/architecture.md) and the
 knowledge base shipped alongside this plugin.
@@ -308,12 +309,13 @@ node tools/verify/_verify_usermsg_persist.mjs "<token>" # 9 — sent messages su
 node tools/verify/_verify_context_overflow.mjs "<token>" # 16 — autocompact argv, history trim, friendly error
 node tools/verify/_verify_title_stable.mjs "<token>" # 9 — stable topic names, locked renames
 node tools/verify/_verify_pump_interleave.mjs         # 8  — tools cannot freeze the thinking pump
+node tools/verify/_verify_thinking_scroll.mjs          # 9  — reading an early thought holds position
 ```
 
-Baseline at 2.5.8: **21/21**, **9/9**, **15/15**, **13/13**, **15/15**, **22/22**, **12/12**,
+Baseline at 2.5.9: **21/21**, **9/9**, **15/15**, **13/13**, **15/15**, **22/22**, **12/12**,
 **12/12**, **6/6**, **9/9**, **13/13**, **18/18**, **8/8** (image), **10/10** (long thinking),
 **5/5** (save guard), **9/9** (message persistence), **16/16** (context overflow), **9/9** (title),
-**8/8** (pump interleave),
+**8/8** (pump interleave), **9/9** (thinking scroll),
 plus a two-turn conversation on one session id. The scroll check passed 22/22 on a clean rerun after
 one flaky full-suite pass (18/22) caused by browser timing.
 
