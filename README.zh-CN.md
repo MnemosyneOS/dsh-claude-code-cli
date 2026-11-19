@@ -242,6 +242,7 @@ CLI 以 `--permission-prompt-tool mcp__ccp-approval__approve` 启动，并带一
 | 报 `exceed_context_size_error` / `request (131770 tokens) exceeds the available context size` | `--resume` 会重放完整 transcript；中文长会话超过本地模型 131k 窗口，而 CLI 默认压缩阈值跟随目录里上报的 1M 上下文 | 2.5.7 已修 —— `--autocompact 100000` + 协议桥中文感知硬预算裁剪 + 可操作中文提示；可调 `设置 → 会话 → 自动压缩阈值（Token）` |
 | 带工具调用的轮次里，思考过程中途停住不显示 | 打字泵把排在工具标记**后面**的文本也算进 backlog，导致队首的标记永远释放不了，后面的思考也到不了 | 2.5.8 已修 —— 队首标记立即释放，backlog 只算最前面连续文本段；见 ㊴ |
 | 思考过程里往上滚看开头，马上又被拽回底部 | 思考详情框在每个新字符到来时强制 `scrollTop = scrollHeight` | 2.5.9 已修 —— 只在已贴底时跟随，否则显示 ↓ 回到底部按钮；见 ㊵ |
+| 取消任务或切换任务后，提示「检查提供方的凭据/额度」 | job 实际是 `Connection error.` / `terminated` 断流，但所有提供方失败共用了同一句泛化建议 | 2.5.10 已修 —— 断流会翻译成中文连接提示，凭据/额度建议只对真正的鉴权失败出现；见 ㊶ |
 
 更多带根因与证据的记录见 [docs/architecture.md](docs/architecture.md)。
 
@@ -287,15 +288,15 @@ node tools/verify/_verify_mobile_port.mjs "<token>" 9260  # 9 项：端口让位
 node tools/verify/_verify_typing_ui.mjs "<token>"   # 18 项：思考链必须逐字出现
 node tools/verify/_verify_save_guard.mjs "<token>"  # 5 项：旧的保存写入被拒绝
 node tools/verify/_verify_usermsg_persist.mjs "<token>" # 9 项：发出的消息在后续轮次仍在
-node tools/verify/_verify_context_overflow.mjs "<token>" # 16 项：自动压缩参数、历史裁剪、错误中文化
+node tools/verify/_verify_context_overflow.mjs "<token>" # 17 项：自动压缩参数、历史裁剪、错误中文化（溢出 + 断流）
 node tools/verify/_verify_title_stable.mjs "<token>"   # 9 项：稳定主题名、手动重命名锁定
 node tools/verify/_verify_pump_interleave.mjs           # 8 项：工具调用不会再冻结思考显示
 node tools/verify/_verify_thinking_scroll.mjs            # 9 项：翻看思考开头时位置不被拽走
 ```
 
-2.5.9 基线：**21/21**、**9/9**、**15/15**、**13/13**、**15/15**、**22/22**、**12/12**、
+2.5.10 基线：**21/21**、**9/9**、**15/15**、**13/13**、**15/15**、**22/22**、**12/12**、
 **12/12**、**6/6**、**9/9**、**13/13**、**18/18**、**8/8**（图片）、**10/10**（长思考链）、
-**5/5**（保存保护）、**9/9**（消息留存）、**16/16**（上下文溢出）、**9/9**（标题）、**8/8**（打字泵交错）、**9/9**（思考框滚动），
+**5/5**（保存保护）、**9/9**（消息留存）、**17/17**（上下文溢出）、**9/9**（标题）、**8/8**（打字泵交错）、**9/9**（思考框滚动），
 以及同一会话内的两轮对话。滚动检查在全量套件中曾因浏览器时序偶发 18/22，单独重跑为 22/22。
 
 逐字验证每 200ms 采样一次真实 DOM：一次性渲染最多只会有「0 → 全长」一步，所以要求出现大量

@@ -107,7 +107,7 @@ check('health still answers after the 413', after.status === 200 && after.json?.
   `HTTP ${after.status} in ${Date.now() - t413}ms`)
 
 const chat = await req('POST', `${API}/chat`, {
-  body: JSON.stringify({ text: '只回答两个字：好的', session_key: SID, provider: 'qwen3-8-flash-next-exl3', model: 'Qwen3.8-Flash-Next-EXL3-4.05bpw' }),
+  body: JSON.stringify({ text: '只回答两个字：好的', session_key: SID, provider: 'workbuddy-ai', model: 'hy4flash' }),
   headers: { 'content-type': 'application/json' },
   timeout: 90000,
 })

@@ -3,6 +3,26 @@
 All notable changes to **DSH-Claude Code CLI** are recorded here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [2.5.10] - 2026-11-19
+
+### Fixed
+
+- **A dropped model stream no longer masquerades as a credential or quota problem.** Cancelling a
+  task, switching tasks or restarting the local model service left `Connection error.` / `terminated`
+  in the job, but the panel showed the generic "check the provider's credentials/quota or switch
+  model" advice. The bridge now translates those raw errors into a Chinese hint that names a dropped
+  connection and says it is not an account-configuration problem; the panel splits its fallback into
+  three branches (context overflow / lost connection / other), so credentials and quota are mentioned
+  only for failures that are actually about authentication or quota. Covered by
+  `_verify_context_overflow` (17 checks, including that the connection hint does not mention
+  credentials or quota).
+
+### Changed
+
+- Verification scripts no longer default to the production `Qwen3.8-Flash-Next-EXL3-4.05bpw` model.
+  Every harness default is now `workbuddy-ai` / `hy4flash`, so a test run cannot disturb the model
+  used by live work.
+
 ## [2.5.9] - 2026-11-19
 
 ### Fixed

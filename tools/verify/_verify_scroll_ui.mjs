@@ -20,8 +20,8 @@ const CHROME = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
 const RUN = Math.random().toString(36).slice(2, 8)
 const PROFILE = path.join(os.tmpdir(), 'ccp-scroll-' + RUN)
 const PORT = 9700 + Math.floor(Math.random() * 90)
-const PROVIDER = process.argv[3] || 'qwen3-8-flash-next-exl3'
-const MODEL = process.argv[4] || 'Qwen3.8-Flash-Next-EXL3-4.05bpw'
+const PROVIDER = process.argv[3] || 'workbuddy-ai'
+const MODEL = process.argv[4] || 'hy4flash'
 const TITLE = 'verify-scroll-' + RUN
 const PROMPT = '请输出 40 行编号列表，每行至少 12 个字，主题随意，不要解释。'
 

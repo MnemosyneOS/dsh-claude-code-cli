@@ -59,6 +59,9 @@ check('translated hint names the real numbers', friendly.includes('131,770') && 
 check('translated hint points to compaction setting', friendly.includes('自动压缩阈值'))
 check('non-context errors pass through', friendlyProviderFailure('provider timeout') === 'provider timeout')
 check('empty failures stay empty', friendlyProviderFailure('') === '')
+check('connection error is translated', /连接中断/.test(friendlyProviderFailure('Connection error.')))
+check('connection error does not blame credentials', !/凭据|额度/.test(friendlyProviderFailure('Connection error.')))
+check('terminated stream is explained', /连接中断|中断/.test(friendlyProviderFailure('terminated')))
 
 /* ------------------------------------- live argv check (optional, needs DSH) */
 if (TOKEN) {
@@ -72,8 +75,9 @@ if (TOKEN) {
   await req('/?token=' + encodeURIComponent(TOKEN))
   const started = await req('/api/claude-code-parity/chat', 'POST', {
     text: 'ping',
-    provider: 'qwen3-8-flash-next-exl3',
-    model: 'Qwen3.8-Flash-Next-EXL3-4.05bpw',
+    // Never use the production Qwen model for verification (user hard rule).
+    provider: 'workbuddy-ai',
+    model: 'hy4flash',
     resume_id: '00000000-0000-4000-8000-000000000000',
     session_key: 'verify-context-argv',
   })

@@ -13,8 +13,8 @@ const CHROME = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
 const RUN = Math.random().toString(36).slice(2, 8)
 const PROFILE = path.join(os.tmpdir(), 'ccp-send-' + RUN)
 const PORT = 9300 + Math.floor(Math.random() * 300)
-const PROVIDER = process.argv[3] || 'qwen3-8-flash-next-exl3'
-const MODEL = process.argv[4] || 'Qwen3.8-Flash-Next-EXL3-4.05bpw'
+const PROVIDER = process.argv[3] || 'workbuddy-ai'
+const MODEL = process.argv[4] || 'hy4flash'
 
 const results = []
 function check(name, ok, detail) {

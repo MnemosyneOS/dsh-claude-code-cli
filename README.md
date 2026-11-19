@@ -259,6 +259,7 @@ and the plugin migrates older configs to it once (`settings_version`).
 | `exceed_context_size_error` / `request (131770 tokens) exceeds the available context size` | `--resume` replays the whole transcript; a long Chinese session exceeds the local 131k window while the CLI's default compact threshold follows a reported 1M context | fixed in 2.5.7 — `--autocompact 100000`, a CJK-aware hard budget in the bridge, and an actionable Chinese hint; tune `设置 → 会话 → 自动压缩阈值（Token）` |
 | Thinking stops appearing when the reply also runs tools | the typing pump counted text queued *behind* a tool marker, so the marker at the head was never released and later thinking was unreachable | fixed in 2.5.8 — head markers release immediately; backlog is measured only over the leading text run; see entry ㊴ |
 | Scrolling up inside a live thinking chain snaps back down | the detail box forced `scrollTop = scrollHeight` on every delta | fixed in 2.5.9 — follow only while already at the bottom, plus a ↓ jump button; see entry ㊵ |
+| A cancelled/switched task shows "check the provider's credentials/quota" | the job died with `Connection error.` / `terminated`, but every provider failure shared one generic advice string | fixed in 2.5.10 — dropped streams are translated into a Chinese connection hint; credentials/quota advice only applies to real auth failures; see entry ㊶ |
 
 More, with root causes and evidence, in [docs/architecture.md](docs/architecture.md) and the
 knowledge base shipped alongside this plugin.
@@ -306,15 +307,15 @@ node tools/verify/_verify_mobile_port.mjs "<token>" 9260  # 9 — port fallback
 node tools/verify/_verify_typing_ui.mjs "<token>"   # 18 — the chain types itself out
 node tools/verify/_verify_save_guard.mjs "<token>"  # 5  — stale history saves are rejected
 node tools/verify/_verify_usermsg_persist.mjs "<token>" # 9 — sent messages survive later turns
-node tools/verify/_verify_context_overflow.mjs "<token>" # 16 — autocompact argv, history trim, friendly error
+node tools/verify/_verify_context_overflow.mjs "<token>" # 17 — autocompact argv, history trim, friendly error (overflow + lost connection)
 node tools/verify/_verify_title_stable.mjs "<token>" # 9 — stable topic names, locked renames
 node tools/verify/_verify_pump_interleave.mjs         # 8  — tools cannot freeze the thinking pump
 node tools/verify/_verify_thinking_scroll.mjs          # 9  — reading an early thought holds position
 ```
 
-Baseline at 2.5.9: **21/21**, **9/9**, **15/15**, **13/13**, **15/15**, **22/22**, **12/12**,
+Baseline at 2.5.10: **21/21**, **9/9**, **15/15**, **13/13**, **15/15**, **22/22**, **12/12**,
 **12/12**, **6/6**, **9/9**, **13/13**, **18/18**, **8/8** (image), **10/10** (long thinking),
-**5/5** (save guard), **9/9** (message persistence), **16/16** (context overflow), **9/9** (title),
+**5/5** (save guard), **9/9** (message persistence), **17/17** (context overflow), **9/9** (title),
 **8/8** (pump interleave), **9/9** (thinking scroll),
 plus a two-turn conversation on one session id. The scroll check passed 22/22 on a clean rerun after
 one flaky full-suite pass (18/22) caused by browser timing.

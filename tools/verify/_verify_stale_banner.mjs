@@ -96,7 +96,7 @@ ws.onmessage = async (ev) => {
         : { file: 'lib/index.js', mtime: Date.now() - 60000, loadedAt: Date.now(), stale: false },
       bridge: { running: true, port: 47823 },
       cli: { path: 'claude.exe', version: '2.1.326' },
-      selection: { provider: 'qwen3-8-flash-next-exl3', model: 'Qwen3.8-Flash-Next-EXL3-4.05bpw' },
+      selection: { provider: 'workbuddy-ai', model: 'hy4flash' },
       counts: { sessions: 1, cliMeta: 0, jobs: 1, uploads: 0 },
       recentJobs: [],
       settings: {},
