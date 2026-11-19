@@ -262,6 +262,7 @@ and the plugin migrates older configs to it once (`settings_version`).
 | Scrolling up inside a live thinking chain snaps back down | the detail box forced `scrollTop = scrollHeight` on every delta | fixed in 2.5.9 — follow only while already at the bottom, plus a ↓ jump button; see entry ㊵ |
 | A cancelled/switched task shows "check the provider's credentials/quota" | the job died with `Connection error.` / `terminated`, but every provider failure shared one generic advice string | fixed in 2.5.10 — dropped streams are translated into a Chinese connection hint; credentials/quota advice only applies to real auth failures; see entry ㊶ |
 | The plugin panel suddenly goes completely blank | one render exception unmounted the whole React 18 tree; the renderer process stayed alive so no crash log was written | fixed in 2.5.11 — error boundary shows a recoverable card with Retry; exceptions are logged to `ccp-data/ui-errors.log`; lone UTF-16 surrogates from GBK-misdecoded output are sanitized; see entry ㊷ |
+| A message is sent and nothing ever comes back (no reply, no error, no "loading") | an upgrade could not reach the registry for the platform-native package, so npm's ~500-byte placeholder replaced `claude.exe`; the version still read correct, so every spawn failed with `spawn UNKNOWN` | fixed in 2.5.13 — the CLI is probed before spawning, the failure is written into the transcript, `spawn UNKNOWN` is translated, and an upgrade can no longer report success on an unrunnable CLI; see entry ㊸ |
 
 More, with root causes and evidence, in [docs/architecture.md](docs/architecture.md) and the
 knowledge base shipped alongside this plugin.
@@ -316,15 +317,16 @@ node tools/verify/_verify_thinking_scroll.mjs          # 9  — reading an early
 node tools/verify/_verify_semantic_compact.mjs         # 25 — dropped history becomes a semantic digest
 node tools/verify/_verify_alignment.mjs                # 13 — one text baseline, one line rhythm
 node tools/verify/_verify_ctx_nudge.mjs                # 54 — compaction is announced before it happens
+node tools/verify/_verify_cli_health.mjs               # 41 — a broken CLI is diagnosed, not silent
 ```
 
-Baseline at 2.5.12: **21/21**, **9/9**, **15/15**, **13/13**, **15/15**, **22/22**, **12/12**,
+Baseline at 2.5.13: **21/21**, **9/9**, **15/15**, **13/13**, **15/15**, **22/22**, **12/12**,
 **12/12**, **6/6**, **9/9**, **13/13**, **18/18**, **8/8** (image), **10/10** (long thinking),
 **5/5** (save guard), **9/9** (message persistence), **17/17** (context overflow), **9/9** (title),
 **8/8** (pump interleave), **9/9** (thinking scroll), **16/16** (blank-screen guard),
 **25/25** (semantic compact), **13/13** (alignment), **54/54** (context nudge),
-plus a two-turn conversation on one session id. The scroll check passed 22/22 on a clean rerun after
-one flaky full-suite pass (18/22) caused by browser timing.
+**41/41** (CLI health), plus a two-turn conversation on one session id. The scroll check passed
+22/22 on a clean rerun after one flaky full-suite pass (18/22) caused by browser timing.
 
 The last five suites that take a `<token>` need a **running** DSH instance; they cannot be exercised
 from a bare checkout. Everything else is self-contained and runs offline.

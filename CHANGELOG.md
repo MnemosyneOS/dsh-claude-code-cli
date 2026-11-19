@@ -3,6 +3,43 @@
 All notable changes to **DSH-Claude Code CLI** are recorded here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [2.5.13] - 2026-11-20
+
+### Fixed
+
+- **A broken CLI no longer produces a turn with no reply and no explanation.** An upgrade ran
+  `npm install`, could not reach the registry for the platform-native optional dependency, and its
+  postinstall wrote npm's ~500-byte placeholder over `bin/claude.exe`. The package version still read
+  `2.1.328`, so every version check said "up to date", while every spawn failed with `spawn UNKNOWN`
+  — which reached the reader as an empty turn plus a toast that faded after a few seconds. Three
+  changes: the CLI is now probed **before** spawning, a failure is written into the transcript as a
+  persistent row instead of only a toast, and `spawn UNKNOWN` is translated into the actual cause and
+  the fix.
+- **An upgrade can no longer report success on a CLI that does not run.** npm treats the missing
+  platform package as non-fatal, so it can exit 0 and leave a placeholder behind; the old check read
+  the version out of `package.json`, which is untouched by that failure. The upgrade now re-probes
+  the binary after npm finishes, reports `升级后 CLI 不可用` when it cannot run, and records
+  `brokeWorkingCli` when a previously working install was broken.
+- **An upgrade record left `running` by a dead process no longer looks like a hung upgrade.** Reading
+  the file back verbatim showed "正在更新" forever and blocked the next attempt; `/upgrade/status` now
+  closes the stale record out and says it can be retried.
+
+### Changed
+
+- CLI health probes moved to `lib/cli-health.js` so they can be tested without booting the plugin.
+  `lib/cli-health.js` was added to the `files` allowlist — without it the published package would
+  have failed to import at load time.
+
+### Verification
+
+- `_verify_cli_health` **41/41** (new): the real placeholder text is written to a temp file and must
+  be rejected; a small legitimate `.cmd` shim must still be accepted (size alone must never decide);
+  missing and empty paths; the installed native binary passes; `spawn UNKNOWN` / `ENOENT` / `EACCES`
+  are translated; the failure reaches the transcript; the upgrade cannot claim a broken install.
+- Regressions: `_verify_ctx_nudge` 54/54, `_verify_semantic_compact` 25/25, `_verify_alignment` 13/13,
+  `_verify_blank_screen` 16/16, `_verify_context_overflow` 17/17, `_verify_pump_interleave` 8/8,
+  `_verify_thinking_scroll` 9/9, `_verify_reply_unit` 15/15.
+
 ## [2.5.12] - 2026-11-19
 
 ### Added
