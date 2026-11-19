@@ -3,6 +3,19 @@
 All notable changes to **DSH-Claude Code CLI** are recorded here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [2.5.8] - 2026-11-19
+
+### Fixed
+
+- **Thinking no longer freezes when a turn also calls tools.** The typing pump counted every text
+  fragment in its queue as backlog, including text queued *behind* a tool/result marker. Once the
+  first text run was typed, the marker sat at the head but the backlog was still non-zero, so the
+  pump never released it and never reached the later thinking text. A legal-document turn with 2,864
+  thinking deltas and four tool calls therefore stalled with no visible thinking at all. The pump now
+  releases head-of-queue markers immediately and measures backlog only over the leading contiguous
+  text run, preserving order while keeping the stream moving. Covered by `_verify_pump_interleave`
+  (8 checks, including a reverse proof that the old rule deadlocks on the same input).
+
 ## [2.5.7] - 2026-11-19
 
 ### Fixed

@@ -14,7 +14,7 @@
 // usage: node _verify_tool.mjs <dsh-token> [provider] [model]
 import http from 'node:http'
 
-const BASE = 'http://127.0.0.1:39120'
+const BASE = process.env.CCP_BASE || 'http://127.0.0.1:39120'
 const TOKEN = process.argv[2]
 const API = '/api/claude-code-parity'
 const PROVIDER = process.argv[3] || 'qwen3-8-flash-next-exl3'

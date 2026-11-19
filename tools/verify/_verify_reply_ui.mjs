@@ -14,7 +14,7 @@ import os from 'node:os'
 import path from 'node:path'
 
 const TOKEN = process.argv[2]
-const BASE = 'http://127.0.0.1:39120'
+const BASE = process.env.CCP_BASE || 'http://127.0.0.1:39120'
 const CHROME = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
 const RUN = Math.random().toString(36).slice(2, 8)
 const PROFILE = path.join(os.tmpdir(), 'ccp-reply-' + RUN)
