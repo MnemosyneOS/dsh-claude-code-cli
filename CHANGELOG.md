@@ -3,6 +3,39 @@
 All notable changes to **DSH-Claude Code CLI** are recorded here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [2.5.14] - 2026-11-20
+
+### Fixed
+
+- **`ReferenceError: t is not defined` while scrolling up inside a live thinking chain.** `WorkRow`
+  is declared at module scope so `renderMessage` can call it, but its "jump to newest line" button
+  read `t.toBottom`, and `t` only exists inside `Panel()`. The branch needs
+  `live && open && !detailAtBottom`, so it stayed invisible until someone scrolled up in a
+  still-streaming thinking box — then it threw, and before 2.5.11 that meant the exact white screen
+  users kept reporting. `t` is now an explicit prop, passed from both call sites.
+
+### Added
+
+- **Row-level error boundary.** The panel-level boundary stops a white screen, but it replaced the
+  whole transcript with one card — a single malformed message hid everything around it. Each
+  rendered group is now wrapped individually, so a fault degrades to an inline amber notice on that
+  one line (with the underlying message and a Retry button) while the rest keeps rendering. Row
+  faults are logged under `render:row`, distinct from `render:main`.
+
+### Changed
+
+- **`.ccp-errbox` is theme-aware.** It hardcoded light-theme colours (`#fdf1ee` / `#a03d24`), which
+  glared in dark mode. Now uses `--coral` / `--coralSoft` / `--ink`.
+
+### Verified
+
+- `_verify_component_scope` **20/20** (new): slices the real `WorkRow` out of `lib/client.js`,
+  renders it through a stub `h` in the exact state that triggers the button, and requires the
+  pre-fix signature to throw `ReferenceError: t is not defined` — the test is proven to have teeth.
+  Also asserts every module-scope function that reads `t.` declares it, that every `WorkRow` call
+  site passes it, and that each group is wrapped in `RowBoundary`.
+- Full suite green: 16 + 17 + 8 + 9 + 15 + 25 + 13 + 54 + 41 + 20 = **218 assertions**.
+
 ## [2.5.13] - 2026-11-20
 
 ### Fixed
